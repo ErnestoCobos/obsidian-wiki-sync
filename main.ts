@@ -397,19 +397,38 @@ export default class GitHubWikiSyncPlugin extends Plugin {
 
   // Helper methods for path conversion
   getLocalPath(wikiName: string): string {
-    const wikiFolder = this.settings.wikiPath ? `${this.settings.wikiPath}/` : '';
+    let wikiFolder = this.settings.wikiPath ? this.settings.wikiPath : '';
+
+    // Ensure we have exactly one trailing slash if wikiFolder is not empty
+    if (wikiFolder) {
+      wikiFolder = wikiFolder.replace(/\/+$/, '') + '/';
+    }
+
     return `${wikiFolder}${wikiName}.md`;
   }
 
   getWikiName(filePath: string): string {
-    const wikiFolder = this.settings.wikiPath || '';
+    let wikiFolder = this.settings.wikiPath || '';
     let fileName = filePath;
 
-    // Remove wiki folder prefix if it exists
-    if (wikiFolder && filePath.startsWith(wikiFolder)) {
-      fileName = filePath.substring(wikiFolder.length);
+    // Special case for root wiki path
+    if (wikiFolder === '/') {
+      // Remove leading slash if present
       if (fileName.startsWith('/')) {
         fileName = fileName.substring(1);
+      }
+    } else {
+      // Normalize wikiFolder by removing trailing slashes
+      if (wikiFolder) {
+        wikiFolder = wikiFolder.replace(/\/+$/, '');
+      }
+
+      // Remove wiki folder prefix if it exists
+      if (wikiFolder && filePath.startsWith(wikiFolder)) {
+        fileName = filePath.substring(wikiFolder.length);
+        if (fileName.startsWith('/')) {
+          fileName = fileName.substring(1);
+        }
       }
     }
 

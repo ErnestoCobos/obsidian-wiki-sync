@@ -1,3 +1,15 @@
-{"total": {"lines":{"total":231,"covered":114,"skipped":0,"pct":49.35},"statements":{"total":235,"covered":117,"skipped":0,"pct":49.78},"functions":{"total":55,"covered":19,"skipped":0,"pct":34.54},"branches":{"total":97,"covered":60,"skipped":0,"pct":61.85},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
-,"/Users/c0305/WebstormProjects/obsidian-github-plugin/main.ts": {"lines":{"total":231,"covered":114,"skipped":0,"pct":49.35},"functions":{"total":55,"covered":19,"skipped":0,"pct":34.54},"statements":{"total":235,"covered":117,"skipped":0,"pct":49.78},"branches":{"total":97,"covered":60,"skipped":0,"pct":61.85}}
+{
+  "total": {
+    "lines": { "total": 236, "covered": 58, "skipped": 0, "pct": 24.57 },
+    "statements": { "total": 241, "covered": 61, "skipped": 0, "pct": 25.31 },
+    "functions": { "total": 55, "covered": 12, "skipped": 0, "pct": 21.81 },
+    "branches": { "total": 103, "covered": 34, "skipped": 0, "pct": 33 },
+    "branchesTrue": { "total": 0, "covered": 0, "skipped": 0, "pct": "Unknown" }
+  },
+  "/Users/c0305/WebstormProjects/obsidian-github-plugin/main.ts": {
+    "lines": { "total": 236, "covered": 58, "skipped": 0, "pct": 24.57 },
+    "functions": { "total": 55, "covered": 12, "skipped": 0, "pct": 21.81 },
+    "statements": { "total": 241, "covered": 61, "skipped": 0, "pct": 25.31 },
+    "branches": { "total": 103, "covered": 34, "skipped": 0, "pct": 33 }
+  }
 }

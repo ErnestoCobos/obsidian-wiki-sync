@@ -1,6 +1,7 @@
-import { App, MarkdownView, Plugin, TFile } from 'obsidian';
-import GitHubWikiSyncPlugin from '../main';
 import { Octokit } from '@octokit/rest';
+import { App, MarkdownView, Plugin, TFile } from 'obsidian';
+
+import GitHubWikiSyncPlugin from '../main';
 
 // Mock Octokit
 jest.mock('@octokit/rest', () => {
@@ -42,10 +43,20 @@ describe('GitHub Wiki Sync Plugin', () => {
   beforeEach(() => {
     app = new App();
     plugin = new GitHubWikiSyncPlugin(app, '');
-    
+
     // Setup status bar item
     plugin.statusBarItem = { setText: jest.fn() } as any;
-    
+
+    // Mock updateStatusBarItem
+    plugin.updateStatusBarItem = jest.fn();
+
+    // Mock initializeGitHub, addRibbonIcon, addStatusBarItem, addCommand, addSettingTab
+    plugin.initializeGitHub = jest.fn();
+    plugin.addRibbonIcon = jest.fn().mockReturnValue({ addClass: jest.fn() });
+    plugin.addStatusBarItem = jest.fn().mockReturnValue({ setText: jest.fn() });
+    plugin.addCommand = jest.fn();
+    plugin.addSettingTab = jest.fn();
+
     // Mock implementation of loadSettings
     plugin.loadSettings = jest.fn().mockImplementation(async () => {
       plugin.settings = {
@@ -58,7 +69,7 @@ describe('GitHub Wiki Sync Plugin', () => {
         lastSyncTimestamp: 0,
       };
     });
-    
+
     // Make sure to complete loadSettings before each test
     return plugin.loadSettings();
   });
@@ -68,7 +79,7 @@ describe('GitHub Wiki Sync Plugin', () => {
     plugin.initializeGitHub = jest.fn();
     plugin.updateStatusBarItem = jest.fn();
     plugin.setupAutoSync = jest.fn();
-    
+
     await plugin.onload();
     expect(plugin.addRibbonIcon).toHaveBeenCalled();
     expect(plugin.addStatusBarItem).toHaveBeenCalled();
@@ -81,7 +92,7 @@ describe('GitHub Wiki Sync Plugin', () => {
     // Ensure statusBarItem is set up
     plugin.statusBarItem = { setText: jest.fn() } as any;
     plugin.updateStatusBarItem = jest.fn();
-    
+
     plugin.initializeGitHub();
     expect(Octokit).toHaveBeenCalledWith({ auth: 'test-token' });
     expect(plugin.octokit).not.toBeNull();
@@ -92,7 +103,7 @@ describe('GitHub Wiki Sync Plugin', () => {
     // Ensure statusBarItem is set up
     plugin.statusBarItem = { setText: jest.fn() } as any;
     plugin.updateStatusBarItem = jest.fn();
-    
+
     plugin.settings.githubToken = '';
     plugin.initializeGitHub();
     expect(plugin.octokit).toBeNull();
@@ -101,12 +112,12 @@ describe('GitHub Wiki Sync Plugin', () => {
 
   it('should setup auto sync when interval is set', async () => {
     plugin.settings.syncInterval = 10;
-    
+
     // Mock window.setInterval
     const originalSetInterval = window.setInterval;
     const mockSetInterval = jest.fn().mockReturnValue(123);
     window.setInterval = mockSetInterval;
-    
+
     try {
       plugin.setupAutoSync();
       expect(mockSetInterval).toHaveBeenCalled();
@@ -118,12 +129,12 @@ describe('GitHub Wiki Sync Plugin', () => {
 
   it('should not setup auto sync when interval is 0', async () => {
     plugin.settings.syncInterval = 0;
-    
+
     // Mock window.setInterval
     const mockSetInterval = jest.fn();
     const originalSetInterval = window.setInterval;
     window.setInterval = mockSetInterval;
-    
+
     try {
       plugin.setupAutoSync();
       expect(mockSetInterval).not.toHaveBeenCalled();
@@ -136,18 +147,18 @@ describe('GitHub Wiki Sync Plugin', () => {
   it('should update status bar item', async () => {
     const mockSetText = jest.fn();
     plugin.statusBarItem = { setText: mockSetText } as any;
-    
+
     // Test not configured state
     plugin.octokit = null;
     plugin.updateStatusBarItem();
     expect(mockSetText).toHaveBeenCalledWith('GitHub Wiki: Not configured');
-    
+
     // Test with octokit but no sync timestamp
     plugin.octokit = new Octokit({ auth: 'test-token' });
     plugin.settings.lastSyncTimestamp = 0;
     plugin.updateStatusBarItem();
     expect(mockSetText).toHaveBeenCalledWith('GitHub Wiki: Never synced');
-    
+
     // Test with custom text
     plugin.updateStatusBarItem('Testing');
     expect(mockSetText).toHaveBeenCalledWith('GitHub Wiki: Testing');
@@ -156,7 +167,7 @@ describe('GitHub Wiki Sync Plugin', () => {
   it('should correctly convert between wiki names and local paths', async () => {
     // Test getLocalPath
     expect(plugin.getLocalPath('test')).toBe('wiki/test.md');
-    
+
     // Test getWikiName
     expect(plugin.getWikiName('wiki/test.md')).toBe('test');
     expect(plugin.getWikiName('test.md')).toBe('test');
