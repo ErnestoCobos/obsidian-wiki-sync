@@ -33,6 +33,11 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
 
     // Disable rules that require type checking
+    // RATIONALE: We disable these specific TypeScript rules in the main codebase for the following reasons:
+    // 1. They require the parserOptions.project to be set, which significantly increases lint time
+    // 2. They often produce false positives with third-party libraries that don't have proper type definitions
+    // 3. The CI/CD pipeline needs to run efficiently without type-checking during the lint phase
+    // 4. Type errors are still caught by the TypeScript compiler during the build phase
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
@@ -66,7 +71,13 @@ module.exports = {
   },
   overrides: [
     {
-      // Reglas específicas para archivos de prueba
+      // Test file specific rules
+      // RATIONALE: We disable multiple TypeScript rules in test files for the following reasons:
+      // 1. Tests often need to use type casts, 'any' types, and mock objects that don't fully match interfaces
+      // 2. Tests require flexible typing for mocks, stubs, and complex assertions
+      // 3. Promise handling in tests is often different from production code (using done callbacks, etc.)
+      // 4. Tests need to access private members and use non-standard patterns for testing edge cases
+      // 5. These relaxed rules significantly reduce noise while maintaining type safety where it matters most
       files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts'],
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
