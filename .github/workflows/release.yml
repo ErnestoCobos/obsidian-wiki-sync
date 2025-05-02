@@ -11,6 +11,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch complete history for better release notes
       
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -24,8 +26,43 @@ jobs:
       - name: Build
         run: npm run build
         
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm run test:coverage:ci
+        env:
+          CI: true
+      
+      - name: Generate coverage badge
+        run: npm run coverage:badge
+        
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+          # Generate changelog since last release
+          echo "## GitHub Wiki Sync v$VERSION" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### Changes" >> release_notes.md
+          git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s" --no-merges >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Coverage" >> release_notes.md
+          echo "- Lines: $(jq '.total.lines.pct' coverage/coverage-summary.json)%" >> release_notes.md
+          echo "- Functions: $(jq '.total.functions.pct' coverage/coverage-summary.json)%" >> release_notes.md
+          echo "- Statements: $(jq '.total.statements.pct' coverage/coverage-summary.json)%" >> release_notes.md
+          echo "- Branches: $(jq '.total.branches.pct' coverage/coverage-summary.json)%" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Installation" >> release_notes.md
+          echo "1. Download the release files: main.js, manifest.json, and styles.css" >> release_notes.md
+          echo "2. Create a folder in your vault's `.obsidian/plugins/` directory called `github-wiki-sync`" >> release_notes.md
+          echo "3. Place the downloaded files in that folder" >> release_notes.md
+          echo "4. Enable the plugin in your Obsidian settings" >> release_notes.md
+          
+          # Create a zip file of the plugin
+          mkdir -p github-wiki-sync
+          cp main.js manifest.json styles.css github-wiki-sync/
+          zip -r github-wiki-sync-$VERSION.zip github-wiki-sync/
       
       - name: Create release
         env:
@@ -34,7 +71,20 @@ jobs:
         with:
           draft: false
           prerelease: false
+          body_path: release_notes.md
           files: |
             main.js
             manifest.json
             styles.css
+            github-wiki-sync-${{ env.VERSION }}.zip
+            coverage/badge.svg
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: release
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true

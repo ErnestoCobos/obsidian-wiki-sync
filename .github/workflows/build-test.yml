@@ -1,11 +1,16 @@
 name: Build and Test
 
 on:
+  # Run on all pushes
   push:
-    branches: [ main, master ]
+    # Skip when pushing tags
+    branches:
+      - '**'
+  # Run on all pull requests
   pull_request:
-    branches: [ main, master ]
+  # Allow manual triggering
   workflow_dispatch:
+  # Run weekly to ensure dependencies stay updated
   schedule:
     - cron: '0 0 * * 0'  # Run weekly on Sundays
 
