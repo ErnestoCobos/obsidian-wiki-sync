@@ -1,0 +1,143 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sundays
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch complete history for more accurate coverage reporting
+      
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build
+        run: npm run build
+        
+      - name: Run tests with coverage (CI mode)
+        run: npm run test:coverage:ci
+        env:
+          CI: true
+          
+      - name: Check coverage thresholds
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            # Get global thresholds from jest.config.js
+            LINES_THRESHOLD=$(grep -A5 "global:" jest.config.js | grep "lines:" | awk '{print $2}' | tr -d ',')
+            FUNCTIONS_THRESHOLD=$(grep -A5 "global:" jest.config.js | grep "functions:" | awk '{print $2}' | tr -d ',')
+            
+            # Get actual coverage values
+            LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+            FUNCTIONS=$(jq '.total.functions.pct' coverage/coverage-summary.json)
+            
+            echo "Checking coverage thresholds: Lines $LINES% (threshold: $LINES_THRESHOLD%), Functions $FUNCTIONS% (threshold: $FUNCTIONS_THRESHOLD%)"
+            
+            if (( $(echo "$LINES < $LINES_THRESHOLD" | bc -l) )) || (( $(echo "$FUNCTIONS < $FUNCTIONS_THRESHOLD" | bc -l) )); then
+              echo "::warning::Coverage thresholds not met! Lines: $LINES%, Functions: $FUNCTIONS%"
+            else
+              echo "::notice::All coverage thresholds met! Lines: $LINES%, Functions: $FUNCTIONS%"
+            fi
+          else
+            echo "::error::Coverage summary not found!"
+            exit 1
+          fi
+        
+      - name: Upload coverage to Codecov
+        if: ${{ matrix.node-version == '18.x' }}
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+        
+      - name: Generate coverage badges
+        if: ${{ matrix.node-version == '18.x' }}
+        run: |
+          npm run coverage:badge
+          
+      - name: Save coverage badge to repo
+        if: ${{ matrix.node-version == '18.x' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'coverage/badge.svg'
+          message: 'chore: update coverage badge [skip ci]'
+          default_author: github_actions
+          push: true
+          
+      - name: Upload coverage report as artifact
+        if: ${{ matrix.node-version == '18.x' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage
+          retention-days: 14
+        
+      - name: Upload build artifacts
+        if: ${{ matrix.node-version == '18.x' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-files
+          path: |
+            main.js
+            manifest.json
+            styles.css
+            
+  coverage-comment:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download coverage report
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage
+          
+      - name: Comment on PR with coverage
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ## Code Coverage Report
+            
+            | Metric | Coverage | Threshold |
+            | ------ | -------- | --------- |
+            | Lines | $(jq '.total.lines.pct' coverage/coverage-summary.json)% | 80% |
+            | Functions | $(jq '.total.functions.pct' coverage/coverage-summary.json)% | 75% |
+            | Statements | $(jq '.total.statements.pct' coverage/coverage-summary.json)% | 80% |
+            | Branches | $(jq '.total.branches.pct' coverage/coverage-summary.json)% | 70% |
+            
+            <details>
+            <summary>Click to see detailed coverage report</summary>
+            
+            ```
+            $(cat coverage/text-summary.txt)
+            ```
+            
+            </details>
+            
+            [View full coverage report on Codecov](https://codecov.io/gh/${{ github.repository }}/pull/${{ github.event.pull_request.number }})
+          comment_tag: coverage-report
+          token: ${{ secrets.GITHUB_TOKEN }}

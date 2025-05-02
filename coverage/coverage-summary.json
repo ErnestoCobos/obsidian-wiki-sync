@@ -1,0 +1,3 @@
+{"total": {"lines":{"total":231,"covered":114,"skipped":0,"pct":49.35},"statements":{"total":235,"covered":117,"skipped":0,"pct":49.78},"functions":{"total":55,"covered":19,"skipped":0,"pct":34.54},"branches":{"total":97,"covered":60,"skipped":0,"pct":61.85},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
+,"/Users/c0305/WebstormProjects/obsidian-github-plugin/main.ts": {"lines":{"total":231,"covered":114,"skipped":0,"pct":49.35},"functions":{"total":55,"covered":19,"skipped":0,"pct":34.54},"statements":{"total":235,"covered":117,"skipped":0,"pct":49.78},"branches":{"total":97,"covered":60,"skipped":0,"pct":61.85}}
+}

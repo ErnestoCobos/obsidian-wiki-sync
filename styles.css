@@ -1,8 +1,62 @@
 /*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
+GitHub Wiki Sync Plugin Styles
 */
+
+/* Status bar item styling */
+.status-bar-item .github-wiki-status {
+  display: inline-flex;
+  align-items: center;
+}
+
+.github-wiki-status .status-icon {
+  margin-right: 4px;
+}
+
+/* Settings styling */
+.github-wiki-sync-settings .setting-item-description {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.github-wiki-sync-settings .token-input {
+  font-family: monospace;
+}
+
+/* Sync indicator */
+.github-wiki-sync-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.github-wiki-sync-indicator.success {
+  background-color: var(--interactive-success);
+}
+
+.github-wiki-sync-indicator.error {
+  background-color: var(--text-error);
+}
+
+.github-wiki-sync-indicator.syncing {
+  background-color: var(--interactive-accent);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* GitHub ribbon icon styling */
+.github-wiki-sync-ribbon-class svg {
+  color: var(--interactive-accent);
+}
