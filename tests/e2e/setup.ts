@@ -133,12 +133,22 @@ export class E2ETestEnvironment {
           getContent: jest.fn().mockImplementation(async ({ path }) => {
             // GitHub API paths don't include the wiki path
             const filePath = path;
+            // Find the file by exact path match
             const file = Array.from(self.remoteFiles.values()).find(f => f.path === filePath);
 
             if (!file) {
               const error: any = new Error(`File not found: ${path}`);
               error.status = 404;
               throw error;
+            }
+
+            // Check if this is a directory
+            if (Array.from(self.remoteFiles.values()).some(f => f.path.startsWith(path + '/'))) {
+              throw new Error('Expected a file but got a directory');
+            }
+
+            if (!file.content) {
+              throw new Error('Response does not contain content');
             }
 
             return {
@@ -148,22 +158,39 @@ export class E2ETestEnvironment {
               },
             };
           }),
-          createOrUpdateFileContents: jest.fn().mockImplementation(async ({ path, content }) => {
-            // Create or update file in remote storage
-            self.remoteFiles.set(path, {
-              path,
-              content: Buffer.from(content, 'base64').toString('utf-8'),
-              lastModified: Date.now(),
-            });
+          createOrUpdateFileContents: jest
+            .fn()
+            .mockImplementation(async ({ path, content, sha }) => {
+              // Check if this would be a directory
+              if (Array.from(self.remoteFiles.values()).some(f => f.path.startsWith(path + '/'))) {
+                throw new Error('Expected a file but got a directory');
+              }
 
-            return {
-              data: {
-                content: {
-                  sha: `sha-${path}-${Date.now()}`,
+              // If SHA is required but not provided
+              if (Array.from(self.remoteFiles.values()).some(f => f.path === path) && !sha) {
+                throw new Error('Response does not contain sha');
+              }
+
+              // Simulate error for specific test case
+              if (path === 'ErrorFile.md') {
+                throw new Error('Failed to create/update file');
+              }
+
+              // Create or update file in remote storage
+              self.remoteFiles.set(path, {
+                path,
+                content: Buffer.from(content, 'base64').toString('utf-8'),
+                lastModified: Date.now(),
+              });
+
+              return {
+                data: {
+                  content: {
+                    sha: `sha-${path}-${Date.now()}`,
+                  },
                 },
-              },
-            };
-          }),
+              };
+            }),
         },
       },
     };
@@ -265,6 +292,16 @@ export class E2ETestEnvironment {
     }
 
     try {
+      // Ensure the wiki folder exists locally
+      const wikiFolder = this.plugin.settings.wikiPath || '';
+      if (wikiFolder && !this.localFiles.has(wikiFolder)) {
+        this.localFiles.set(wikiFolder, {
+          path: wikiFolder,
+          content: '',
+          lastModified: Date.now(),
+        });
+      }
+
       await this.plugin.pullFromGitHub();
 
       // Record sync event
@@ -301,7 +338,25 @@ export class E2ETestEnvironment {
     }
 
     try {
+      // Patch the getMarkdownFiles method to return proper TFile objects
+      const originalGetMarkdownFiles = this.app.vault.getMarkdownFiles;
+      this.app.vault.getMarkdownFiles = jest.fn().mockImplementation(() => {
+        return Array.from(this.localFiles.values())
+          .filter(file => file.path.endsWith('.md'))
+          .map(file => {
+            return {
+              path: file.path,
+              name: file.path.split('/').pop() || '',
+              extension: 'md',
+              basename: (file.path.split('/').pop() || '').replace(/\.md$/, ''),
+            } as TFile;
+          });
+      });
+
       await this.plugin.pushToGitHub();
+
+      // Restore original method
+      this.app.vault.getMarkdownFiles = originalGetMarkdownFiles;
 
       // Record sync event
       this.syncEvents.push({
@@ -325,6 +380,13 @@ export class E2ETestEnvironment {
 // Helper to set up a standard environment with some test data
 export function createStandardE2EEnvironment(): E2ETestEnvironment {
   const env = new E2ETestEnvironment();
+
+  // Create wiki folder structure
+  env.localFiles.set('wiki', {
+    path: 'wiki',
+    content: '',
+    lastModified: Date.now(),
+  });
 
   // Add some local files
   env.addLocalFile('wiki/Home.md', '# Wiki Home\nWelcome to the test wiki!');
