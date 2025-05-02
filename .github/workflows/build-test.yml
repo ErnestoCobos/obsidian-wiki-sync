@@ -23,12 +23,12 @@ jobs:
         node-version: [16.x, 18.x]
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch complete history for more accurate coverage reporting
       
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -75,7 +75,7 @@ jobs:
         
       - name: Upload coverage to Codecov
         if: ${{ matrix.node-version == '18.x' }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/coverage-final.json
@@ -91,7 +91,7 @@ jobs:
           
       - name: Save coverage badge to repo
         if: ${{ matrix.node-version == '18.x' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v9.1.4
         with:
           add: 'coverage/badge.svg'
           message: 'chore: update coverage badge [skip ci]'
@@ -100,7 +100,7 @@ jobs:
           
       - name: Upload coverage report as artifact
         if: ${{ matrix.node-version == '18.x' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage
@@ -108,7 +108,7 @@ jobs:
         
       - name: Upload build artifacts
         if: ${{ matrix.node-version == '18.x' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-files
           path: |
@@ -128,7 +128,7 @@ jobs:
           path: coverage
           
       - name: Comment on PR with coverage
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v2.4.2
         with:
           message: |
             ## Code Coverage Report
