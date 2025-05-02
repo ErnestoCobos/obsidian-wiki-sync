@@ -1,15 +1,17 @@
 # Sincronización de GitHub Wiki para Obsidian
 
-[![Build and Test](https://github.com/yourusername/obsidian-github-wiki-sync/actions/workflows/build-test.yml/badge.svg)](https://github.com/yourusername/obsidian-github-wiki-sync/actions/workflows/build-test.yml)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/yourusername/obsidian-github-wiki-sync)](https://github.com/yourusername/obsidian-github-wiki-sync/releases/latest)
-[![GitHub license](https://img.shields.io/github/license/yourusername/obsidian-github-wiki-sync)](https://github.com/yourusername/obsidian-github-wiki-sync/blob/main/LICENSE)
+[![Build and Test](https://github.com/ErnestoCobos/obsidian-wiki-sync/actions/workflows/build-test.yml/badge.svg)](https://github.com/ErnestoCobos/obsidian-wiki-sync/actions/workflows/build-test.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ErnestoCobos/obsidian-wiki-sync)](https://github.com/ErnestoCobos/obsidian-wiki-sync/releases/latest)
+[![GitHub license](https://img.shields.io/github/license/ErnestoCobos/obsidian-wiki-sync)](https://github.com/ErnestoCobos/obsidian-wiki-sync/blob/main/LICENSE)
+[![Code Coverage](https://raw.githubusercontent.com/ErnestoCobos/obsidian-wiki-sync/main/coverage/badge.svg)](https://codecov.io/gh/ErnestoCobos/obsidian-wiki-sync)
+[![codecov](https://codecov.io/gh/ErnestoCobos/obsidian-wiki-sync/branch/main/graph/badge.svg)](https://codecov.io/gh/ErnestoCobos/obsidian-wiki-sync)
 
 Este plugin te permite sincronizar tu bóveda de Obsidian con repositorios de GitHub Wiki. Proporciona sincronización bidireccional entre tus notas locales de Obsidian y un Wiki de GitHub, facilitando la colaboración con otros o el mantenimiento de documentación usando Obsidian.
 
 ## Repositorio
 
 El código fuente de este plugin está disponible en GitHub:
-https://github.com/yourusername/obsidian-github-wiki-sync
+https://github.com/ErnestoCobos/obsidian-wiki-sync
 
 ## Características
 

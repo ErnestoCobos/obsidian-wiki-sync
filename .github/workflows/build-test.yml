@@ -36,8 +36,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Lint
+        run: npm run lint
+        
       - name: Build
         run: npm run build
+        
+      - name: Check bundle size
+        run: npx bundlewatch --config .bundlewatch.config.js
         
       - name: Run tests with coverage (CI mode)
         run: npm run test:coverage:ci

@@ -1,0 +1,44 @@
+version: 2
+updates:
+  # Mantener dependencias npm actualizadas
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    # Limitar a 5 PRs abiertos a la vez
+    open-pull-requests-limit: 5
+    # Agrupar actualizaciones menos críticas
+    groups:
+      dev-dependencies:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "jest*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Configuración de seguridad
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automerge"
+    # Ignorar ciertas dependencias si es necesario
+    ignore:
+      - dependency-name: "obsidian"
+        # Obsidian API es manejada de manera especial
+
+  # Mantener actualizadas las acciones de GitHub
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "ci"
+      - "github-actions"

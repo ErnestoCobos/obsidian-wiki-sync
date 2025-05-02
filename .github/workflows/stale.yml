@@ -1,0 +1,39 @@
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+    - cron: "30 1 * * *"  # Ejecutar cada día a la 1:30 UTC
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/stale@v8
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 60
+          days-before-close: 14
+          exempt-issue-labels: "bug,enhancement,documentation,good first issue,help wanted,priority"
+          exempt-pr-labels: "wip,work in progress,pending review"
+          stale-issue-message: >
+            Esta issue ha estado inactiva durante 60 días sin actividad. Se marcará como obsoleta si no hay
+            ninguna actividad en los próximos 14 días. Siéntete libre de comentar si crees que todavía es relevante
+            o asignar una de las etiquetas de exención.
+          stale-pr-message: >
+            Este pull request ha estado inactivo durante 60 días sin actividad. Se marcará como obsoleto si no hay
+            ninguna actividad en los próximos 14 días. Siéntete libre de comentar si estás trabajando en él o
+            necesitas más tiempo para completarlo.
+          close-issue-message: >
+            Esta issue ha sido cerrada automáticamente debido a la inactividad durante más de 74 días.
+            Siéntete libre de reabrirla si consideras que sigue siendo relevante.
+          close-pr-message: >
+            Este pull request ha sido cerrado automáticamente debido a la inactividad durante más de 74 días.
+            Siéntete libre de reabrirlo si planeas continuarlo.
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-all-milestones: true
+          operations-per-run: 50
